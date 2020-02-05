@@ -1,0 +1,52 @@
+#platform "Gen4-uLCD-32DT"
+
+
+#inherit "4DGL_16bitColours.fnc"
+
+#inherit "VisualConst.inc"
+
+#inherit "ledDigitsDisplay-ve.inc"
+
+#inherit "clockConst.inc"
+
+func main()
+
+    gfx_Set(SCREEN_MODE,LANDSCAPE) ;
+    gfx_Contrast(12);
+
+    if (!(file_Mount()))
+        while(!(file_Mount()))
+            putstr("Drive not mounted...");
+            pause(2000);
+            gfx_Cls();
+            pause(200);
+        wend
+    endif
+
+    hndl := file_LoadImageControl("clock.dat", "clock.gci", 1);
+    // putstr("image loaded properly...");
+    // pause(2000);
+
+
+    gfx_CircleFilled(160, 104, 8, GRAY) ;
+    gfx_CircleFilled(160, 136, 8, GRAY) ;
+
+    var h := 0;
+    var m := 0;
+    repeat
+
+        ledDigitsDisplay(h, iihours, 4, 2, 1, 72, 1) ;
+        ledDigitsDisplay(m, iiminutes, 172, 2, 1, 72, 0) ;
+        m++;
+        if ( m > 59 )
+            m := 0;
+            h++;
+        endif
+        if ( h > 23 )
+            h := 0;
+        endif
+        pause(100);
+    forever
+
+endfunc
+

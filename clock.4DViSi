@@ -1,0 +1,83 @@
+﻿Version     0.0
+Platform    Gen4-uLCD-32DT-L
+PlatRes     240x320
+Depends
+end
+Options
+    Visualizer
+    Speed                        9600
+    Checksum                     No
+    ResponseSize                 2
+    Multidrop                    No
+    Destination                  0
+    DestBank                     0
+    MainForm                     0
+    SndBuf                       0
+    ButtonDisable                No
+    SignedDigits                 Yes
+    MaxString                    75
+    ComPort                      0
+    ComTX1pinIdx                 0
+    ComRX1pinIdx                 0
+end
+Form
+    Name                         Form1
+    Alias                        Form1
+    Bgtype                       Color
+    Color                        BLACK
+    Image                        (None)
+    Source.Height                0
+    Source.Left                  0
+    Source.Top                   0
+    Source.Width                 0
+    OnActivate                   ''
+    OnCreate                     ''
+    OnRepeat                     ''
+    OnTouchMoving                ''
+    OnTouchPressed               ''
+    OnTouchReleased              ''
+end
+CustomDigits
+    Name                         hours
+    Alias                        hours
+    Bitmap                       HugeDigitsWhite.bmp
+    Digits                       2
+    LeadingZero                  No
+    Left                         4
+    Top                          68
+    OnChanged                    ''
+    OnTouchMoving                ''
+    OnTouchPressed               ''
+    OnTouchReleased              ''
+end
+CustomDigits
+    Name                         minutes
+    Alias                        minutes
+    Bitmap                       HugeDigitsWhite.bmp
+    Digits                       2
+    LeadingZero                  Yes
+    Left                         172
+    Top                          68
+    OnChanged                    ''
+    OnTouchMoving                ''
+    OnTouchPressed               ''
+    OnTouchReleased              ''
+end
+Circle
+    Name                         dot1
+    Alias                        dot1
+    Color                        GRAY
+    Filled                       Yes
+    Rad                          8
+    X                            160
+    Y                            104
+end
+Circle
+    Name                         dot2
+    Alias                        dot2
+    Color                        GRAY
+    Filled                       Yes
+    Rad                          8
+    X                            160
+    Y                            136
+end
