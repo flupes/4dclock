@@ -43,8 +43,8 @@ CustomDigits
     Bitmap                       HugeDigitsWhite.bmp
     Digits                       2
     LeadingZero                  No
-    Left                         4
-    Top                          68
+    Left                         5
+    Top                          41
     OnChanged                    ''
     OnTouchMoving                ''
     OnTouchPressed               ''
@@ -56,8 +56,8 @@ CustomDigits
     Bitmap                       HugeDigitsWhite.bmp
     Digits                       2
     LeadingZero                  Yes
-    Left                         172
-    Top                          68
+    Left                         173
+    Top                          41
     OnChanged                    ''
     OnTouchMoving                ''
     OnTouchPressed               ''
@@ -70,7 +70,7 @@ Circle
     Filled                       Yes
     Rad                          8
     X                            160
-    Y                            104
+    Y                            72
 end
 Circle
     Name                         dot2
@@ -79,5 +79,107 @@ Circle
     Filled                       Yes
     Rad                          8
     X                            160
-    Y                            136
+    Y                            108
+end
+Strings
+    Name                         year
+    Alias                        year
+    Alignment                    Left
+    BGcolor                      BLACK
+    Height                       36
+    FGcolor                      WHITE
+    Font.Bold                    No
+    Font.CharSet                 ANSI
+    Font.Italic                  No
+    Font.Name                    'IBM Plex Mono Medium'
+    Font.Opaque                  Yes
+    Font.Size                    36
+    Font.Strikethrough           No
+    Font.Underline               No
+    Left                         4
+    Strings                      2020\n2021\n2022\n2023\n2024\n2025\n2025\n2026\n2027\n2028\n2030\n2031\n2032\n2033\n2034\n2035\n2036\n2037\n2038\n2039\n2040\n----\n
+    StringsStyle                 Message
+    Top                          0
+    Width                        80
+    OnChanged                    ''
+end
+Strings
+    Name                         month
+    Alias                        month
+    Alignment                    Left
+    BGcolor                      BLACK
+    Height                       36
+    FGcolor                      WHITE
+    Font.Bold                    No
+    Font.CharSet                 ANSI
+    Font.Italic                  No
+    Font.Name                    'IBM Plex Mono Medium'
+    Font.Opaque                  Yes
+    Font.Size                    36
+    Font.Strikethrough           No
+    Font.Underline               No
+    Left                         84
+    Strings                      Jan.\nFeb.\nMarch\nApril\nMay\nJune\nJuly\nAug.\nSept.\nOct.\nNov.\nDec.\n
+    StringsStyle                 Message
+    Top                          0
+    Width                        100
+    OnChanged                    ''
+end
+Strings
+    Name                         date
+    Alias                        date
+    Alignment                    Left
+    BGcolor                      BLACK
+    Height                       36
+    FGcolor                      WHITE
+    Font.Bold                    No
+    Font.CharSet                 ANSI
+    Font.Italic                  No
+    Font.Name                    'IBM Plex Mono Medium'
+    Font.Opaque                  Yes
+    Font.Size                    36
+    Font.Strikethrough           No
+    Font.Underline               No
+    Left                         180
+    Strings                      1st\n2nd\n3rd\n4th\n5th\n6th\n7th\n8th\n
+9th\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n
+    StringsStyle                 Message
+    Top                          0
+    Width                        64
+    OnChanged                    ''
+end
+Strings
+    Name                         day
+    Alias                        day
+    Alignment                    Left
+    BGcolor                      BLACK
+    Height                       36
+    FGcolor                      WHITE
+    Font.Bold                    No
+    Font.CharSet                 ANSI
+    Font.Italic                  No
+    Font.Name                    'IBM Plex Mono Medium'
+    Font.Opaque                  Yes
+    Font.Size                    36
+    Font.Strikethrough           No
+    Font.Underline               No
+    Left                         256
+    Strings                      MON\nTUE\nWED\nTHU\nFRI\nSAT\nSUN\n
+    StringsStyle                 Message
+    Top                          0
+    Width                        64
+    OnChanged                    ''
+end
+CustomDigits
+    Name                         seconds
+    Alias                        seconds
+    Bitmap                       HalfDigitsWhite.bmp
+    Digits                       2
+    LeadingZero                  Yes
+    Left                         124
+    Top                          140
+    OnChanged                    ''
+    OnTouchMoving                ''
+    OnTouchPressed               ''
+    OnTouchReleased              ''
 end

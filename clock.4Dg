@@ -6,13 +6,14 @@
 #inherit "VisualConst.inc"
 
 #inherit "ledDigitsDisplay-ve.inc"
+#inherit "PrintDisk.inc"
 
 #inherit "clockConst.inc"
 
 func main()
 
     gfx_Set(SCREEN_MODE,LANDSCAPE) ;
-    gfx_Contrast(12);
+    gfx_Contrast(4);
 
     if (!(file_Mount()))
         while(!(file_Mount()))
@@ -23,21 +24,69 @@ func main()
         wend
     endif
 
+    var hstrings ; // Handle to access uSD strings, uncomment if required
+    var hFont1 ;   // Handle to access uSD font for year
+    var hFont2 ;   // Handle to access uSD font for month
+    var hFont3 ;   // Handle to access uSD font for date
+    var hFont4 ;   // Handle to access uSD font for day
+
+    hFont1 := file_LoadImageControl("clock.d01", "clock.g01", 1);
+    hFont2 := file_LoadImageControl("clock.d02", "clock.g02", 1);
+    hFont3 := file_LoadImageControl("clock.d03", "clock.g03", 1);
+    hFont4 := file_LoadImageControl("clock.d04", "clock.g04", 1);
+    hstrings := file_Open("clock.txf", 'r') ; // Open handle to access uSD strings
+
     hndl := file_LoadImageControl("clock.dat", "clock.gci", 1);
     // putstr("image loaded properly...");
     // pause(2000);
 
+    gfx_CircleFilled(160, 72, 8, GRAY) ;
+    gfx_CircleFilled(160, 108, 8, GRAY) ;
 
-    gfx_CircleFilled(160, 104, 8, GRAY) ;
-    gfx_CircleFilled(160, 136, 8, GRAY) ;
+
+    // year 1.1 generated 04/02/2020 22:24:45
+    txt_FontID(hFont1) ; // Font index correct at time of code generation
+    txt_FGcolour(WHITE) ;
+    txt_BGcolour(BLACK) ;
+    gfx_MoveTo(4 , 0) ;
+    PrintDisk(hstrings, yearStartH, yearStartL, yearSize, 1) ; // where i is Message 0 - yearCount-1
+
+
+    // month 1.1 generated 04/02/2020 22:25:00
+    txt_FontID(hFont2) ; // Font index correct at time of code generation
+    txt_FGcolour(WHITE) ;
+    txt_BGcolour(BLACK) ;
+    gfx_MoveTo(84 , 0) ;
+    PrintDisk(hstrings, monthStartH, monthStartL, monthSize, 9) ; // where i is Message 0 - monthCount-1
+
+
+    // date 1.1 generated 04/02/2020 22:26:08
+    txt_FontID(hFont3) ; // Font index correct at time of code generation
+    txt_FGcolour(WHITE) ;
+    txt_BGcolour(BLACK) ;
+    gfx_MoveTo(180 , 0) ;
+    PrintDisk(hstrings, dateStartH, dateStartL, dateSize, 3) ; // where i is Message 0 - dateCount-1
+
+    // day 1.1 generated 04/02/2020 22:26:14
+    txt_FontID(hFont4) ; // Font index correct at time of code generation
+    txt_FGcolour(WHITE) ;
+    txt_BGcolour(BLACK) ;
+    gfx_MoveTo(256 , 0) ;
+    PrintDisk(hstrings, dayStartH, dayStartL, daySize, 4) ; // where i is Message 0 - dayCount-1
 
     var h := 0;
     var m := 0;
+    var s := 0;
     repeat
+        ledDigitsDisplay(h, iihours, 5, 2, 1, 72, 1) ;
+        ledDigitsDisplay(m, iiminutes, 173, 2, 1, 72, 0) ;
+        ledDigitsDisplay(s, iiseconds, 124, 2, 1, 36, 0) ;
 
-        ledDigitsDisplay(h, iihours, 4, 2, 1, 72, 1) ;
-        ledDigitsDisplay(m, iiminutes, 172, 2, 1, 72, 0) ;
-        m++;
+        s++;
+        if ( s > 59 )
+            s := 0;
+            m++;
+        endif
         if ( m > 59 )
             m := 0;
             h++;
