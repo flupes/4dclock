@@ -1,6 +1,5 @@
 #platform "Gen4-uLCD-32DT"
 
-
 #inherit "4DGL_16bitColours.fnc"
 
 #inherit "VisualConst.inc"
@@ -10,10 +9,36 @@
 
 #inherit "clockConst.inc"
 
+
+var g_hours := 0;
+var g_minutes := 0;
+var g_seconds := 0;
+var g_update_h := 1;
+var g_update_m := 1;
+var g_update_s := 1;
+
+func tick_seconds()
+    g_seconds++;
+    g_update_s := 1;
+    if ( g_seconds > 59 )
+        g_seconds := 0;
+        g_minutes++;
+        g_update_m := 1;
+    endif
+    if ( g_minutes > 59 )
+        g_minutes := 0;
+        g_hours++;
+        g_update_h := 1;
+    endif
+    if ( g_hours > 23 )
+        g_hours := 0;
+    endif
+    sys_SetTimer(TIMER1, 100);
+endfunc
+
 func main()
 
     gfx_Set(SCREEN_MODE,LANDSCAPE) ;
-    gfx_Contrast(4);
 
     if (!(file_Mount()))
         while(!(file_Mount()))
@@ -42,7 +67,6 @@ func main()
 
     gfx_CircleFilled(160, 72, 8, GRAY) ;
     gfx_CircleFilled(160, 108, 8, GRAY) ;
-
 
     // year 1.1 generated 04/02/2020 22:24:45
     txt_FontID(hFont1) ; // Font index correct at time of code generation
@@ -74,27 +98,46 @@ func main()
     gfx_MoveTo(256 , 0) ;
     PrintDisk(hstrings, dayStartH, dayStartL, daySize, 4) ; // where i is Message 0 - dayCount-1
 
-    var h := 0;
-    var m := 0;
-    var s := 0;
-    repeat
-        ledDigitsDisplay(h, iihours, 5, 2, 1, 72, 1) ;
-        ledDigitsDisplay(m, iiminutes, 173, 2, 1, 72, 0) ;
-        ledDigitsDisplay(s, iiseconds, 124, 2, 1, 36, 0) ;
+    touch_Set(TOUCH_ENABLE);
+    var brightness := 8;
+    var x, y;
+    gfx_Contrast(brightness);
+    sys_SetTimerEvent(TIMER1, tick_seconds);
+    tick_seconds();
 
-        s++;
-        if ( s > 59 )
-            s := 0;
-            m++;
+    repeat
+        if (g_update_h)
+            ledDigitsDisplay(g_hours, iihours, 5, 2, 1, 72, 1) ;
+            g_update_h := 0;
         endif
-        if ( m > 59 )
-            m := 0;
-            h++;
+        if (g_update_m)
+            ledDigitsDisplay(g_minutes, iiminutes, 173, 2, 1, 72, 0) ;
+            g_update_m := 0;
         endif
-        if ( h > 23 )
-            h := 0;
+        if (g_update_s)
+            ledDigitsDisplay(g_seconds, iiseconds, 124, 2, 1, 36, 0) ;
+            g_update_s := 0;
         endif
-        pause(100);
+
+        if (touch_Get(TOUCH_STATUS) == TOUCH_RELEASED)
+            x := touch_Get(TOUCH_GETX);
+            y := touch_Get(TOUCH_GETY);
+            if ( y > 120 & y < 220 )
+                if ( x < 100 )
+                    brightness -= 2;
+                    if ( brightness < 2 )
+                        brightness := 2;
+                    endif
+                endif
+                if ( x > 220 )
+                    brightness += 2;
+                    if ( brightness > 14 )
+                        brightness := 14;
+                    endif
+                endif
+                gfx_Contrast(brightness);
+            endif
+        endif
     forever
 
 endfunc

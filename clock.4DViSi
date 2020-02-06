@@ -9,7 +9,7 @@ Options
     Checksum                     No
     ResponseSize                 2
     Multidrop                    No
-    Destination                  0
+    Destination                  1
     DestBank                     0
     MainForm                     0
     SndBuf                       0
@@ -21,8 +21,8 @@ Options
     ComRX1pinIdx                 0
 end
 Form
-    Name                         Form1
-    Alias                        Form1
+    Name                         Main
+    Alias                        Main
     Bgtype                       Color
     Color                        BLACK
     Image                        (None)
@@ -44,7 +44,7 @@ CustomDigits
     Digits                       2
     LeadingZero                  No
     Left                         5
-    Top                          41
+    Top                          44
     OnChanged                    ''
     OnTouchMoving                ''
     OnTouchPressed               ''
@@ -57,7 +57,7 @@ CustomDigits
     Digits                       2
     LeadingZero                  Yes
     Left                         173
-    Top                          41
+    Top                          44
     OnChanged                    ''
     OnTouchMoving                ''
     OnTouchPressed               ''
@@ -70,7 +70,7 @@ Circle
     Filled                       Yes
     Rad                          8
     X                            160
-    Y                            72
+    Y                            74
 end
 Circle
     Name                         dot2
@@ -79,7 +79,7 @@ Circle
     Filled                       Yes
     Rad                          8
     X                            160
-    Y                            108
+    Y                            110
 end
 Strings
     Name                         year
@@ -122,13 +122,13 @@ Strings
     Strings                      Jan.\nFeb.\nMarch\nApril\nMay\nJune\nJuly\nAug.\nSept.\nOct.\nNov.\nDec.\n
     StringsStyle                 Message
     Top                          0
-    Width                        100
+    Width                        96
     OnChanged                    ''
 end
 Strings
     Name                         date
     Alias                        date
-    Alignment                    Left
+    Alignment                    Right
     BGcolor                      BLACK
     Height                       36
     FGcolor                      WHITE
@@ -141,8 +141,7 @@ Strings
     Font.Strikethrough           No
     Font.Underline               No
     Left                         180
-    Strings                      1st\n2nd\n3rd\n4th\n5th\n6th\n7th\n8th\n
-9th\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n
+    Strings                      1st\n2nd\n3rd\n4th\n5th\n6th\n7th\n8th\n9th\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n
     StringsStyle                 Message
     Top                          0
     Width                        64
@@ -151,7 +150,7 @@ end
 Strings
     Name                         day
     Alias                        day
-    Alignment                    Left
+    Alignment                    Right
     BGcolor                      BLACK
     Height                       36
     FGcolor                      WHITE
@@ -163,7 +162,7 @@ Strings
     Font.Size                    36
     Font.Strikethrough           No
     Font.Underline               No
-    Left                         256
+    Left                         252
     Strings                      MON\nTUE\nWED\nTHU\nFRI\nSAT\nSUN\n
     StringsStyle                 Message
     Top                          0
@@ -177,7 +176,7 @@ CustomDigits
     Digits                       2
     LeadingZero                  Yes
     Left                         124
-    Top                          140
+    Top                          144
     OnChanged                    ''
     OnTouchMoving                ''
     OnTouchPressed               ''
