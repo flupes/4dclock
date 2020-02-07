@@ -9,11 +9,9 @@
 
 #inherit "clockConst.inc"
 
-#inherit "DS3224.inc"
+#inherit "clockPinout.inc"
 
-#constant ENCODER_CHA_A_PIN PA4
-#constant ENCODER_CHA_B_PIN PA5
-#constant ENCODER_PUSH_PIN PA6
+#inherit "DS3224.inc"
 
 var g_hours := 0;
 var g_minutes := 0;
@@ -41,19 +39,13 @@ func TickSeconds()
     sys_SetTimer(TIMER1, 100);
 endfunc
 
-func ConfigurePins()
-    pin_Set(PIN_INP_HI, ENCODER_CHA_A_PIN);
-    pin_Set(PIN_INP_HI, ENCODER_CHA_B_PIN);
-    pin_Set(PIN_INP_HI, ENCODER_PUSH_PIN);
-    Qencoder1(ENCODER_CHA_A_PIN, ENCODER_CHA_B_PIN, 0);
-endfunc
 
 func CheckButton(var buttonPin)
     var private pressed_count[2] := [0, 0];
     var private pressed_state[2] := [0, 0];
     var index := 0;
     var pressed := 0;
-    if ( buttonPin != ENCODER_PUSH_PIN )
+    if ( buttonPin != PIN_QENC_PUSH )
         index := 1;
     endif
     if ( pin_Read(buttonPin) == 0 )
@@ -74,9 +66,12 @@ endfunc
 
 func main()
 
-    ConfigurePins();
-
     gfx_Set(SCREEN_MODE,LANDSCAPE) ;
+    if ( ConfigurePins() > 0 )
+        print("Error while configuring the board!");
+        repeat
+        forever
+    endif
 
     if (!(file_Mount()))
         while(!(file_Mount()))
@@ -161,7 +156,7 @@ func main()
             ledDigitsDisplay(g_seconds, iiseconds, 124, 2, 1, 36, 0) ;
             g_update_s := 0;
         endif
-        pressed := CheckButton(ENCODER_PUSH_PIN);
+        pressed := CheckButton(PIN_QENC_PUSH);
         if ( pressed )
             counter := 0;
             ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);

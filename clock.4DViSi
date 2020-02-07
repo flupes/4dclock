@@ -2,6 +2,7 @@
 Platform    Gen4-uLCD-32DT-L
 PlatRes     240x320
 Depends
+    clockPinout.inc
     DS3224.inc
 end
 Options
