@@ -2,6 +2,7 @@
 Platform    Gen4-uLCD-32DT-L
 PlatRes     240x320
 Depends
+    DS3224.inc
 end
 Options
     Visualizer
@@ -9,7 +10,7 @@ Options
     Checksum                     No
     ResponseSize                 2
     Multidrop                    No
-    Destination                  1
+    Destination                  0
     DestBank                     0
     MainForm                     0
     SndBuf                       0

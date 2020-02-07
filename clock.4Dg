@@ -9,6 +9,11 @@
 
 #inherit "clockConst.inc"
 
+#inherit "DS3224.inc"
+
+#constant ENCODER_CHA_A_PIN PA4
+#constant ENCODER_CHA_B_PIN PA5
+#constant ENCODER_PUSH_PIN PA6
 
 var g_hours := 0;
 var g_minutes := 0;
@@ -17,7 +22,7 @@ var g_update_h := 1;
 var g_update_m := 1;
 var g_update_s := 1;
 
-func tick_seconds()
+func TickSeconds()
     g_seconds++;
     g_update_s := 1;
     if ( g_seconds > 59 )
@@ -36,7 +41,40 @@ func tick_seconds()
     sys_SetTimer(TIMER1, 100);
 endfunc
 
+func ConfigurePins()
+    pin_Set(PIN_INP_HI, ENCODER_CHA_A_PIN);
+    pin_Set(PIN_INP_HI, ENCODER_CHA_B_PIN);
+    pin_Set(PIN_INP_HI, ENCODER_PUSH_PIN);
+    Qencoder1(ENCODER_CHA_A_PIN, ENCODER_CHA_B_PIN, 0);
+endfunc
+
+func CheckButton(var buttonPin)
+    var private pressed_count[2] := [0, 0];
+    var private pressed_state[2] := [0, 0];
+    var index := 0;
+    var pressed := 0;
+    if ( buttonPin != ENCODER_PUSH_PIN )
+        index := 1;
+    endif
+    if ( pin_Read(buttonPin) == 0 )
+        pressed_count[index]++;
+    else
+        if ( pressed_count[index] > 1 )
+            pressed_count[index]--;
+        else
+            pressed_state[index] := 0;
+        endif
+    endif
+    if (pressed_state[index] == 0 && pressed_count[index] > 6)
+        pressed_state[index] := 1;
+        pressed := 1;
+    endif
+    return (pressed);
+endfunc
+
 func main()
+
+    ConfigurePins();
 
     gfx_Set(SCREEN_MODE,LANDSCAPE) ;
 
@@ -100,10 +138,15 @@ func main()
 
     touch_Set(TOUCH_ENABLE);
     var brightness := 8;
-    var x, y;
+    var x, y, pressed;
+    var qenc_delta := 0;
+    var counter := 120;
+    ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
+
     gfx_Contrast(brightness);
-    sys_SetTimerEvent(TIMER1, tick_seconds);
-    tick_seconds();
+    sys_SetTimerEvent(TIMER1, TickSeconds);
+    TickSeconds();
+    Qencoder1Reset();
 
     repeat
         if (g_update_h)
@@ -114,9 +157,31 @@ func main()
             ledDigitsDisplay(g_minutes, iiminutes, 173, 2, 1, 72, 0) ;
             g_update_m := 0;
         endif
-        if (g_update_s)
+        if (0 && g_update_s)
             ledDigitsDisplay(g_seconds, iiseconds, 124, 2, 1, 36, 0) ;
             g_update_s := 0;
+        endif
+        pressed := CheckButton(ENCODER_PUSH_PIN);
+        if ( pressed )
+            counter := 0;
+            ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
+        endif
+        qenc_delta :=  peekW(QEN1_DELTA);
+        // quadrature encoder adds 4 ticks for one step: total value/4 is what we want at the end
+        if ( qenc_delta != 0 )
+            //txt_FontID(FONT_5);
+            //putstrXY(8, 160, "     ");
+            //putstrXY(8, 180, "     ");
+            //putnumXY(8, 160, DEC, counter);
+            //putnumXY(8, 180, DEC, qenc_delta);
+            counter += qenc_delta;
+            if (counter > 240)
+                counter -= 240;
+            endif
+            if (counter < 0)
+                counter += 240;
+            endif
+            ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
         endif
 
         if (touch_Get(TOUCH_STATUS) == TOUCH_RELEASED)
