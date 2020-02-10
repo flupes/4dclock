@@ -3,7 +3,9 @@ Platform    Gen4-uLCD-32DT-L
 PlatRes     240x320
 Depends
     clockPinout.inc
-    DS3224.inc
+    display.inc
+    DS3234.inc
+    utils.inc
 end
 Options
     Visualizer
@@ -11,7 +13,7 @@ Options
     Checksum                     No
     ResponseSize                 2
     Multidrop                    No
-    Destination                  0
+    Destination                  1
     DestBank                     0
     MainForm                     0
     SndBuf                       0

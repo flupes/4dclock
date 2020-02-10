@@ -4,14 +4,11 @@
 
 #inherit "VisualConst.inc"
 
-#inherit "ledDigitsDisplay-ve.inc"
-#inherit "PrintDisk.inc"
-
 #inherit "clockConst.inc"
 
 #inherit "clockPinout.inc"
-
-#inherit "DS3224.inc"
+#inherit "display.inc"
+#inherit "DS3234.inc"
 
 var g_hours := 0;
 var g_minutes := 0;
@@ -26,12 +23,12 @@ func TickSeconds()
     if ( g_seconds > 59 )
         g_seconds := 0;
         g_minutes++;
-        g_update_m := 1;
+        //g_update_m := 1;
     endif
     if ( g_minutes > 59 )
         g_minutes := 0;
         g_hours++;
-        g_update_h := 1;
+        //g_update_h := 1;
     endif
     if ( g_hours > 23 )
         g_hours := 0;
@@ -64,13 +61,20 @@ func CheckButton(var buttonPin)
     return (pressed);
 endfunc
 
+
+
 func main()
 
     gfx_Set(SCREEN_MODE,LANDSCAPE) ;
+
     if ( ConfigurePins() > 0 )
         print("Error while configuring the board!");
-        repeat
-        forever
+        repeat forever
+    endif
+
+    if ( DS3234_Init() > 0 )
+        print("Failed to initialize DS3234!");
+        repeat forever
     endif
 
     if (!(file_Mount()))
@@ -82,54 +86,10 @@ func main()
         wend
     endif
 
-    var hstrings ; // Handle to access uSD strings, uncomment if required
-    var hFont1 ;   // Handle to access uSD font for year
-    var hFont2 ;   // Handle to access uSD font for month
-    var hFont3 ;   // Handle to access uSD font for date
-    var hFont4 ;   // Handle to access uSD font for day
-
-    hFont1 := file_LoadImageControl("clock.d01", "clock.g01", 1);
-    hFont2 := file_LoadImageControl("clock.d02", "clock.g02", 1);
-    hFont3 := file_LoadImageControl("clock.d03", "clock.g03", 1);
-    hFont4 := file_LoadImageControl("clock.d04", "clock.g04", 1);
-    hstrings := file_Open("clock.txf", 'r') ; // Open handle to access uSD strings
-
-    hndl := file_LoadImageControl("clock.dat", "clock.gci", 1);
-    // putstr("image loaded properly...");
-    // pause(2000);
+    LoadResources();
 
     gfx_CircleFilled(160, 72, 8, GRAY) ;
     gfx_CircleFilled(160, 108, 8, GRAY) ;
-
-    // year 1.1 generated 04/02/2020 22:24:45
-    txt_FontID(hFont1) ; // Font index correct at time of code generation
-    txt_FGcolour(WHITE) ;
-    txt_BGcolour(BLACK) ;
-    gfx_MoveTo(4 , 0) ;
-    PrintDisk(hstrings, yearStartH, yearStartL, yearSize, 1) ; // where i is Message 0 - yearCount-1
-
-
-    // month 1.1 generated 04/02/2020 22:25:00
-    txt_FontID(hFont2) ; // Font index correct at time of code generation
-    txt_FGcolour(WHITE) ;
-    txt_BGcolour(BLACK) ;
-    gfx_MoveTo(84 , 0) ;
-    PrintDisk(hstrings, monthStartH, monthStartL, monthSize, 9) ; // where i is Message 0 - monthCount-1
-
-
-    // date 1.1 generated 04/02/2020 22:26:08
-    txt_FontID(hFont3) ; // Font index correct at time of code generation
-    txt_FGcolour(WHITE) ;
-    txt_BGcolour(BLACK) ;
-    gfx_MoveTo(180 , 0) ;
-    PrintDisk(hstrings, dateStartH, dateStartL, dateSize, 3) ; // where i is Message 0 - dateCount-1
-
-    // day 1.1 generated 04/02/2020 22:26:14
-    txt_FontID(hFont4) ; // Font index correct at time of code generation
-    txt_FGcolour(WHITE) ;
-    txt_BGcolour(BLACK) ;
-    gfx_MoveTo(256 , 0) ;
-    PrintDisk(hstrings, dayStartH, dayStartL, daySize, 4) ; // where i is Message 0 - dayCount-1
 
     touch_Set(TOUCH_ENABLE);
     var brightness := 8;
@@ -139,28 +99,16 @@ func main()
     ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
 
     gfx_Contrast(brightness);
-    sys_SetTimerEvent(TIMER1, TickSeconds);
-    TickSeconds();
+    //sys_SetTimerEvent(TIMER1, TickSeconds);
+    //TickSeconds();
+
     Qencoder1Reset();
 
     repeat
-        if (g_update_h)
-            ledDigitsDisplay(g_hours, iihours, 5, 2, 1, 72, 1) ;
-            g_update_h := 0;
-        endif
-        if (g_update_m)
-            ledDigitsDisplay(g_minutes, iiminutes, 173, 2, 1, 72, 0) ;
-            g_update_m := 0;
-        endif
-        if (0 && g_update_s)
-            ledDigitsDisplay(g_seconds, iiseconds, 124, 2, 1, 36, 0) ;
-            g_update_s := 0;
-        endif
-        pressed := CheckButton(PIN_QENC_PUSH);
-        if ( pressed )
-            counter := 0;
-            ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
-        endif
+        DS3234_Read();
+        UpdateDate(g_ds_year, g_ds_month, g_ds_date, g_ds_day);
+        UpdateTime(g_ds_hours, g_ds_minutes, g_ds_seconds);
+
         qenc_delta :=  peekW(QEN1_DELTA);
         // quadrature encoder adds 4 ticks for one step: total value/4 is what we want at the end
         if ( qenc_delta != 0 )
@@ -176,7 +124,7 @@ func main()
             if (counter < 0)
                 counter += 240;
             endif
-            ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
+            // ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
         endif
 
         if (touch_Get(TOUCH_STATUS) == TOUCH_RELEASED)
@@ -201,4 +149,24 @@ func main()
     forever
 
 endfunc
+
+/*
+        if (g_update_h)
+            ledDigitsDisplay(g_hours, iihours, 5, 2, 1, 72, 1) ;
+            g_update_h := 0;
+        endif
+        if (g_update_m)
+            ledDigitsDisplay(g_minutes, iiminutes, 173, 2, 1, 72, 0) ;
+            g_update_m := 0;
+        endif
+        if (0 && g_update_s)
+            ledDigitsDisplay(g_seconds, iiseconds, 124, 2, 1, 36, 0) ;
+            g_update_s := 0;
+        endif
+        pressed := CheckButton(PIN_QENC_PUSH);
+        if ( pressed )
+            counter := 0;
+            ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
+        endif
+*/
 
