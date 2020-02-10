@@ -1,0 +1,29 @@
+#platform "Gen4-uLCD-32DT"
+
+#inherit "4DGL_16bitColours.fnc"
+
+#inherit "clockPinout.inc"
+
+#inherit "DS3234.inc"
+
+func main()
+
+    gfx_ScreenMode(LANDSCAPE) ;
+
+    pin_Set(PIN_OUT, PA2);
+    pin_HI(PA2);
+
+    if ( DS3234_Init() > 0 )
+        print("Error configuring the RTC!\n");
+        repeat forever
+    endif
+
+
+    repeat
+
+        DS3234_Read();
+
+    forever
+
+endfunc
+
