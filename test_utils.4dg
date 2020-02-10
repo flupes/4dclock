@@ -1,0 +1,21 @@
+#platform "Gen4-uLCD-32DT"
+
+#inherit "4DGL_16bitColours.fnc"
+
+#inherit "utils.inc"
+
+func main()
+
+    gfx_ScreenMode(PORTRAIT) ;
+
+    var i, b, d;
+    for (i:=0; i<25; i++)
+        b := DEC2BCD(i);
+        d := BCD2DEC(b);
+        print(i, "(", [HEX4]i, ") : ", [HEX4]b, " --> ", d, "(", [HEX4]d, ")\n");
+    next
+
+    repeat forever
+
+endfunc
+
