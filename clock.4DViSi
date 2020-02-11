@@ -13,7 +13,7 @@ Options
     Checksum                     No
     ResponseSize                 2
     Multidrop                    No
-    Destination                  1
+    Destination                  0
     DestBank                     0
     MainForm                     0
     SndBuf                       0

@@ -10,6 +10,8 @@ var g_hFont2 ;   // Handle to access uSD font for month
 var g_hFont3 ;   // Handle to access uSD font for date
 var g_hFont4 ;   // Handle to access uSD font for day
 
+var g_force_update := 0;
+
 func LoadResources()
     g_hFont1 := file_LoadImageControl("clock.d01", "clock.g01", 1);
     g_hFont2 := file_LoadImageControl("clock.d02", "clock.g02", 1);
@@ -20,12 +22,17 @@ func LoadResources()
     hndl := file_LoadImageControl("clock.dat", "clock.gci", 1);
 endfunc
 
+func UpdateDots()
+    gfx_CircleFilled(160, 72, 8, GRAY) ;
+    gfx_CircleFilled(160, 108, 8, GRAY) ;
+endfunc
+
 func UpdateYear(var year)
     var private last_year := -1;
     year := year - 20;  // glyphs for year start at 2020!
     var updated := 0;
     if (year >= 0 && year < yearCount)
-        if (year != last_year)
+        if (year != last_year || g_force_update)
             // year 1.1 generated 04/02/2020 22:24:45
             txt_FontID(g_hFont1) ; // Font index correct at time of code generation
             txt_FGcolour(WHITE) ;
@@ -44,7 +51,7 @@ func UpdateMonth(var month)
     var updated := 0;
     month := month - 1; // index of glyphs start at 0, clock months start at 1
     if (month >= 0 && month < monthCount)
-        if (month != last_month)
+        if (month != last_month || g_force_update)
             // month 1.1 generated 04/02/2020 22:25:00
             txt_FontID(g_hFont2) ; // Font index correct at time of code generation
             txt_FGcolour(WHITE) ;
@@ -58,12 +65,12 @@ func UpdateMonth(var month)
     return (updated);
 endfunc
 
-func UpdateToday(var date)
+func UpdateDate(var date)
     var private last_date := -1;
     var updated := 0;
     date := date - 1; // index of glyphs start at 0, clock date start at 1
     if (date >= 0 && date < dateCount)
-        if (date != last_date)
+        if (date != last_date || g_force_update)
             // date 1.1 generated 04/02/2020 22:26:08
             txt_FontID(g_hFont3) ; // Font index correct at time of code generation
             txt_FGcolour(WHITE) ;
@@ -85,7 +92,7 @@ func UpdateDay(var day)
         day += 7;
     endif
     if (day >= 0 && day < dayCount)
-        if (day != last_day)
+        if (day != last_day || g_force_update)
             // day 1.1 generated 04/02/2020 22:26:14
             txt_FontID(g_hFont4) ; // Font index correct at time of code generation
             txt_FGcolour(WHITE) ;
@@ -103,7 +110,7 @@ func UpdateHours(var hours)
     var private last_hours := -1;
     var updated := 0;
     if (hours >= 0 && hours <100) // allow display of something non sensical (just for debugging)
-        if (hours != last_hours)
+        if (hours != last_hours || g_force_update)
             ledDigitsDisplay(hours, iihours, 5, 2, 1, 72, 1) ;
             last_hours := hours;
             updated := 1;
@@ -116,7 +123,7 @@ func UpdateMinutes(var minutes)
     var private last_minutes := -1;
     var updated := 0;
     if (minutes >= 0 && minutes < 100)
-        if (minutes != last_minutes)
+        if (minutes != last_minutes || g_force_update)
             ledDigitsDisplay(minutes, iiminutes, 173, 2, 1, 72, 0) ;
             last_minutes := minutes;
             updated := 1;
@@ -129,7 +136,7 @@ func UpdateSeconds(var seconds)
     var private last_seconds := -1;
     var updated := 0;
     if (seconds >= 0 && seconds < 100)
-        if (seconds != last_seconds)
+        if (seconds != last_seconds || g_force_update)
             ledDigitsDisplay(seconds, iiseconds, 124, 2, 1, 36, 0) ;
             last_seconds := seconds;
             updated := 1;
@@ -138,11 +145,11 @@ func UpdateSeconds(var seconds)
     return (updated);
 endfunc
 
-func UpdateDate(var year, var month, var date, var day)
+func UpdateCalendar(var year, var month, var date, var day)
     var updates := 0;
     updates += UpdateYear(year);
     updates += UpdateMonth(month);
-    updates += UpdateToday(date);
+    updates += UpdateDate(date);
     updates += UpdateDay(day);
     return (updates);
 endfunc

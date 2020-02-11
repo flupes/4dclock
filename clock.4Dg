@@ -65,6 +65,8 @@ endfunc
 
 func main()
 
+    var private last_second, last_minute, last_date := -1;
+
     gfx_Set(SCREEN_MODE,LANDSCAPE) ;
 
     if ( ConfigurePins() > 0 )
@@ -88,43 +90,76 @@ func main()
 
     LoadResources();
 
-    gfx_CircleFilled(160, 72, 8, GRAY) ;
-    gfx_CircleFilled(160, 108, 8, GRAY) ;
-
     touch_Set(TOUCH_ENABLE);
     var brightness := 8;
-    var x, y, pressed;
+    var x, y, pressed, seconds;
+    var mode := 0;
     var qenc_delta := 0;
     var counter := 120;
-    ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
+    //ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
 
     gfx_Contrast(brightness);
     //sys_SetTimerEvent(TIMER1, TickSeconds);
     //TickSeconds();
 
     Qencoder1Reset();
+    UpdateDots();
 
     repeat
         DS3234_Read();
-        UpdateDate(g_ds_year, g_ds_month, g_ds_date, g_ds_day);
-        UpdateTime(g_ds_hours, g_ds_minutes, g_ds_seconds);
 
-        qenc_delta :=  peekW(QEN1_DELTA);
-        // quadrature encoder adds 4 ticks for one step: total value/4 is what we want at the end
-        if ( qenc_delta != 0 )
-            //txt_FontID(FONT_5);
-            //putstrXY(8, 160, "     ");
-            //putstrXY(8, 180, "     ");
-            //putnumXY(8, 160, DEC, counter);
-            //putnumXY(8, 180, DEC, qenc_delta);
-            counter += qenc_delta;
-            if (counter > 240)
-                counter -= 240;
+        pressed := CheckButton(PIN_QENC_PUSH);
+        if ( pressed )
+            if ( mode == 0)
+                mode := 1;
+                seconds := g_ds_seconds;
+                counter := seconds * 4;
+                gfx_Surround(120, 144, 200, 190, 6, 2, CYAN);
+                Qencoder1Reset();
+            else
+                mode := 0;
+                gfx_RectangleFilled(112, 136, 208, 198, BLACK);
             endif
-            if (counter < 0)
-                counter += 240;
+        endif
+
+        if ( mode == 1)
+            qenc_delta :=  peekW(QEN1_DELTA);
+            // quadrature encoder adds 4 ticks for one step: total value/4 is what we want at the end
+            if ( qenc_delta != 0 )
+                counter += qenc_delta;
+                if (counter > 240)
+                    counter -= 240;
+                endif
+                if (counter < 0)
+                    counter += 240;
+                endif
+                seconds := counter / 4;
+                UpdateSeconds(seconds);
+                gfx_Surround(120, 146, 200, 190, 6, 2, CYAN);
             endif
-            // ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
+        else
+            seconds := g_ds_seconds;
+        endif
+
+        if (0 && g_ds_minutes != last_minute)
+            last_minute := g_ds_minutes;
+            //gfx_Cls();
+            // Full refresh every minute
+            gfx_RectangleFilled(2, 44, 318, 100, BLACK);
+            UpdateDots();
+            g_force_update := 1;
+            UpdateCalendar(g_ds_year, g_ds_month, g_ds_date, g_ds_day);
+            UpdateTime(g_ds_hours, g_ds_minutes, seconds);
+            g_force_update := 0;
+        else
+            if (g_ds_seconds != last_second)
+                last_second := g_ds_seconds;
+                UpdateTime(g_ds_hours, g_ds_minutes, seconds);
+            endif
+            if (last_date != g_ds_date)
+                last_date := g_ds_date;
+                UpdateCalendar(g_ds_year, g_ds_month, g_ds_date, g_ds_day);
+            endif
         endif
 
         if (touch_Get(TOUCH_STATUS) == TOUCH_RELEASED)
