@@ -10,13 +10,6 @@
 #inherit "display.inc"
 #inherit "DS3234.inc"
 
-var g_hours := 0;
-var g_minutes := 0;
-var g_seconds := 0;
-var g_update_h := 1;
-var g_update_m := 1;
-var g_update_s := 1;
-
 #constant MODE_CLOCK 0
 #constant MODE_SET_SECONDS 1
 #constant MODE_SET_MINUTES 2
@@ -24,27 +17,8 @@ var g_update_s := 1;
 #constant MODES_COUNT 4
 
 var g_mode := MODE_CLOCK;
+var g_set_timeout := 0;
 var g_g_dboundary[4];
-
-func TickSeconds()
-    g_seconds++;
-    g_update_s := 1;
-    if ( g_seconds > 59 )
-        g_seconds := 0;
-        g_minutes++;
-        //g_update_m := 1;
-    endif
-    if ( g_minutes > 59 )
-        g_minutes := 0;
-        g_hours++;
-        //g_update_h := 1;
-    endif
-    if ( g_hours > 23 )
-        g_hours := 0;
-    endif
-    sys_SetTimer(TIMER1, 100);
-endfunc
-
 
 func CheckButton(var buttonPin)
     var private pressed_count[2] := [0, 0];
@@ -71,10 +45,7 @@ func CheckButton(var buttonPin)
 endfunc
 
 func ResetMode()
-    //switch (g_mode)
-    //endswitch
-    gfx_RectangleFilled(g_g_dboundary[0]-4, g_g_dboundary[1]-4, g_g_dboundary[2]+4, g_g_dboundary[3]+4, BLACK);
-    g_mode := MODE_CLOCK();
+    g_set_timeout := 1;
 endfunc
 
 func main()
@@ -110,11 +81,7 @@ func main()
     var qenc_delta := 0;
     var counter, max_counts;
 
-    //ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
-
     gfx_Contrast(brightness);
-    //sys_SetTimerEvent(TIMER1, TickSeconds);
-    //TickSeconds();
 
     Qencoder1Reset();
     UpdateDots();
@@ -137,21 +104,21 @@ func main()
                         break;
                     case MODE_SET_MINUTES:
                         gfx_RectangleFilled(g_g_dboundary[0]-4, g_g_dboundary[1]-4, g_g_dboundary[2]+4, g_g_dboundary[3]+4, BLACK);
-                        UpdateSeconds(seconds);
+                        g_force_update:= 1; UpdateSeconds(seconds);  g_force_update := 0;
                         g_g_dboundary[0] := 174; g_g_dboundary[1] := 46;
                         g_g_dboundary[2] := g_g_dboundary[0]+ 140; g_g_dboundary[3] := g_g_dboundary[1] + 88;
                         minutes := g_ds_minutes;
-                        counter := minutes;
+                        counter := minutes * 4;
                         max_counts := 60 * 4;
                         break;
                     case MODE_SET_HOURS:
                         gfx_RectangleFilled(g_g_dboundary[0]-4, g_g_dboundary[1]-4, g_g_dboundary[2]+4, g_g_dboundary[3]+4, BLACK);
-                        UpdateMinutes(minutes);
+                        g_force_update:= 1; UpdateMinutes(minutes); g_force_update := 0;
                         g_g_dboundary[0] := 5; g_g_dboundary[1] := 46;
                         g_g_dboundary[2] := g_g_dboundary[0]+140; g_g_dboundary[3] := g_g_dboundary[1]+88;
                         hours := g_ds_hours;
-                        counter := hours;
-                        max_counts := 60 * 4;
+                        counter := hours * 4;
+                        max_counts := 24 * 4;
                         break;
                 endswitch
                 sys_SetTimer(TIMER1, 12000);
@@ -162,20 +129,29 @@ func main()
                     sys_SetTimerEvent(TIMER1, 0);
                 endif
                 gfx_RectangleFilled(g_g_dboundary[0]-4, g_g_dboundary[1]-4, g_g_dboundary[2]+4, g_g_dboundary[3]+4, BLACK);
-                UpdateHours(hours);
+                g_force_update:= 1; UpdateHours(hours); g_force_update := 0;
             endif
         endif
 
         seconds := g_ds_seconds;
         minutes := g_ds_minutes;
         hours := g_ds_hours;
+        if ( g_set_timeout == 1 )
+            g_set_timeout := 0;
+            gfx_RectangleFilled(g_g_dboundary[0]-4, g_g_dboundary[1]-4, g_g_dboundary[2]+4, g_g_dboundary[3]+4, BLACK);
+            g_force_update := 1;
+            UpdateTime(hours, minutes, seconds);
+            g_force_update := 0;
+            g_mode := MODE_CLOCK;
+        endif
+
         if ( g_mode > 0)
             qenc_delta :=  peekW(QEN1_DELTA);
             // quadrature encoder adds 4 ticks for one step: total value/4 is what we want at the end
             if ( qenc_delta != 0 )
                 sys_SetTimer(TIMER1, 12000);
                 counter += qenc_delta;
-                if (counter > max_counts)
+                if (counter > max_counts - 1)
                     counter -= max_counts;
                 endif
                 if (counter < 0)
