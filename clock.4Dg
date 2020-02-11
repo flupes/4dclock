@@ -17,6 +17,15 @@ var g_update_h := 1;
 var g_update_m := 1;
 var g_update_s := 1;
 
+#constant MODE_CLOCK 0
+#constant MODE_SET_SECONDS 1
+#constant MODE_SET_MINUTES 2
+#constant MODE_SET_HOURS 3
+#constant MODES_COUNT 4
+
+var g_mode := MODE_CLOCK;
+var g_g_dboundary[4];
+
 func TickSeconds()
     g_seconds++;
     g_update_s := 1;
@@ -61,7 +70,12 @@ func CheckButton(var buttonPin)
     return (pressed);
 endfunc
 
-
+func ResetMode()
+    //switch (g_mode)
+    //endswitch
+    gfx_RectangleFilled(g_g_dboundary[0]-4, g_g_dboundary[1]-4, g_g_dboundary[2]+4, g_g_dboundary[3]+4, BLACK);
+    g_mode := MODE_CLOCK();
+endfunc
 
 func main()
 
@@ -92,10 +106,10 @@ func main()
 
     touch_Set(TOUCH_ENABLE);
     var brightness := 8;
-    var x, y, pressed, seconds;
-    var mode := 0;
+    var x, y, pressed, seconds, minutes, hours, old_mode;
     var qenc_delta := 0;
-    var counter := 120;
+    var counter, max_counts;
+
     //ledDigitsDisplay(counter/4, iiseconds, 124, 2, 1, 36, 0);
 
     gfx_Contrast(brightness);
@@ -110,39 +124,83 @@ func main()
 
         pressed := CheckButton(PIN_QENC_PUSH);
         if ( pressed )
-            if ( mode == 0)
-                mode := 1;
-                seconds := g_ds_seconds;
-                counter := seconds * 4;
-                gfx_Surround(120, 144, 200, 190, 6, 2, CYAN);
+            old_mode := g_mode;
+            g_mode := (old_mode + 1) % MODES_COUNT;
+            if ( g_mode > 0 )
+                switch (g_mode)
+                    case MODE_SET_SECONDS:
+                        g_g_dboundary[0] := 124; g_g_dboundary[1] := 144;
+                        g_g_dboundary[2] := g_g_dboundary[0] + 72; g_g_dboundary[3] := g_g_dboundary[1] + 44;
+                        seconds := g_ds_seconds;
+                        counter := seconds * 4;
+                        max_counts := 60 * 4;
+                        break;
+                    case MODE_SET_MINUTES:
+                        gfx_RectangleFilled(g_g_dboundary[0]-4, g_g_dboundary[1]-4, g_g_dboundary[2]+4, g_g_dboundary[3]+4, BLACK);
+                        UpdateSeconds(seconds);
+                        g_g_dboundary[0] := 174; g_g_dboundary[1] := 46;
+                        g_g_dboundary[2] := g_g_dboundary[0]+ 140; g_g_dboundary[3] := g_g_dboundary[1] + 88;
+                        minutes := g_ds_minutes;
+                        counter := minutes;
+                        max_counts := 60 * 4;
+                        break;
+                    case MODE_SET_HOURS:
+                        gfx_RectangleFilled(g_g_dboundary[0]-4, g_g_dboundary[1]-4, g_g_dboundary[2]+4, g_g_dboundary[3]+4, BLACK);
+                        UpdateMinutes(minutes);
+                        g_g_dboundary[0] := 5; g_g_dboundary[1] := 46;
+                        g_g_dboundary[2] := g_g_dboundary[0]+140; g_g_dboundary[3] := g_g_dboundary[1]+88;
+                        hours := g_ds_hours;
+                        counter := hours;
+                        max_counts := 60 * 4;
+                        break;
+                endswitch
+                sys_SetTimer(TIMER1, 12000);
+                sys_SetTimerEvent(TIMER1, ResetMode);
                 Qencoder1Reset();
             else
-                mode := 0;
-                gfx_RectangleFilled(112, 136, 208, 198, BLACK);
+                if ( sys_GetTimer(TIMER1) > 0 )
+                    sys_SetTimerEvent(TIMER1, 0);
+                endif
+                gfx_RectangleFilled(g_g_dboundary[0]-4, g_g_dboundary[1]-4, g_g_dboundary[2]+4, g_g_dboundary[3]+4, BLACK);
+                UpdateHours(hours);
             endif
         endif
 
-        if ( mode == 1)
+        seconds := g_ds_seconds;
+        minutes := g_ds_minutes;
+        hours := g_ds_hours;
+        if ( g_mode > 0)
             qenc_delta :=  peekW(QEN1_DELTA);
             // quadrature encoder adds 4 ticks for one step: total value/4 is what we want at the end
             if ( qenc_delta != 0 )
+                sys_SetTimer(TIMER1, 12000);
                 counter += qenc_delta;
-                if (counter > 240)
-                    counter -= 240;
+                if (counter > max_counts)
+                    counter -= max_counts;
                 endif
                 if (counter < 0)
-                    counter += 240;
+                    counter += max_counts;
                 endif
-                seconds := counter / 4;
-                UpdateSeconds(seconds);
-                gfx_Surround(120, 146, 200, 190, 6, 2, CYAN);
             endif
-        else
-            seconds := g_ds_seconds;
+            switch (g_mode)
+                case MODE_SET_SECONDS:
+                    seconds := counter / 4;
+                    UpdateSeconds(seconds);
+                    break;
+                case MODE_SET_MINUTES:
+                    minutes := counter / 4;
+                    UpdateMinutes(minutes);
+                    break;
+                case MODE_SET_HOURS:
+                    hours := counter / 4;
+                    UpdateHours(hours);
+                    break;
+                endswitch
+            gfx_Surround(g_g_dboundary[0]+4, g_g_dboundary[1]+4, g_g_dboundary[2]-4, g_g_dboundary[3]-4, 6, 2, CYAN);
         endif
 
-        if (0 && g_ds_minutes != last_minute)
-            last_minute := g_ds_minutes;
+        if (0 && minutes != last_minute)
+            last_minute := minutes;
             //gfx_Cls();
             // Full refresh every minute
             gfx_RectangleFilled(2, 44, 318, 100, BLACK);
@@ -152,9 +210,9 @@ func main()
             UpdateTime(g_ds_hours, g_ds_minutes, seconds);
             g_force_update := 0;
         else
-            if (g_ds_seconds != last_second)
-                last_second := g_ds_seconds;
-                UpdateTime(g_ds_hours, g_ds_minutes, seconds);
+            if (seconds != last_second)
+                last_second := seconds;
+                UpdateTime(hours, minutes, seconds);
             endif
             if (last_date != g_ds_date)
                 last_date := g_ds_date;
