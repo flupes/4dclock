@@ -10,18 +10,33 @@ func main()
 
     gfx_ScreenMode(LANDSCAPE) ;
 
-    pin_Set(PIN_OUT, PA2);
-    pin_HI(PA2);
-
     if ( DS3234_Init() > 0 )
         print("Error configuring the RTC!\n");
         repeat forever
     endif
 
 
-    repeat
+    DS3234_ReadTimeDate();
+    //DS3234_SetHour(23);
+    DS3234_SetTimeDate(g_ds_seconds, g_ds_minutes, g_ds_hours-2, g_ds_day, g_ds_date, g_ds_month, g_ds_year);
 
-        DS3234_Read();
+    var counter := 0;
+    repeat
+        counter++;
+
+        DS3234_ReadTimeDate();
+
+        txt_MoveCursor(1, 1);
+        print("counter = ", [HEX4]counter, "\n");
+        print("seconds = ", [DEC2Z]g_ds_seconds, "\n");
+        print("minutes = ", [DEC2Z]g_ds_minutes, "\n");
+        print("hours = ", [DEC2Z]g_ds_hours, "\n");
+        print("day = ", [DEC2Z]g_ds_day, "\n");
+        print("date = ", [DEC2Z]g_ds_date, "\n");
+        print("month = ", [DEC2Z]g_ds_month, "\n");
+        print("year = ", [DEC2Z]g_ds_year, "\n");
+
+        pause(200);
 
     forever
 
